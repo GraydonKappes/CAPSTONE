@@ -35,7 +35,19 @@ CREATE TABLE [User] (
 );
 
 -- Vendor Table
-CREATE TABLE Vendor (Id 				int		 		PRIMARY KEY IDENTITY(1,1),Code 			varchar(10) 	NOT NULL,Name 			varchar(255) 	NOT NULL,Address 		varchar(255) 	NOT NULL,City 			varchar(255) 	NOT NULL,State 			char(2) 		NOT NULL,Zip 			char(5) 		NOT NULL,PhoneNumber	 	varchar(12) 	NOT NULL,Email 			varchar(100) 	NOT NULL,CONSTRAINT UQ_Vendor_Code		UNIQUE (Code),CONSTRAINT UQ_Vendor_Business	UNIQUE (Name, Address, City, State));
+CREATE TABLE Vendor (
+Id 				int		 		PRIMARY KEY IDENTITY(1,1),
+Code 			varchar(10) 	NOT NULL,
+Name 			varchar(255) 	NOT NULL,
+Address 		varchar(255) 	NOT NULL,
+City 			varchar(255) 	NOT NULL,
+State 			char(2) 		NOT NULL,
+Zip 			char(5) 		NOT NULL,
+PhoneNumber	 	varchar(12) 	NOT NULL,
+Email 			varchar(100) 	NOT NULL,
+CONSTRAINT UQ_Vendor_Code		UNIQUE (Code),
+CONSTRAINT UQ_Vendor_Business	UNIQUE (Name, Address, City, State)
+);
 -- Product Table
 CREATE TABLE Product (
     Id INT PRIMARY KEY IDENTITY(1,1),
@@ -64,4 +76,12 @@ CREATE TABLE Request (
 );
 
 -- LineItem Table
-CREATE TABLE LineItem (Id 				int 		PRIMARY KEY IDENTITY(1,1),RequestId 		int 		not null,ProductId 		int 		not null,Quantity 		int 		not null,FOREIGN KEY (ProductId) REFERENCES Product(Id),FOREIGN KEY (RequestId) REFERENCES Request(Id),CONSTRAINT UQ_LineItem_Req_Prod UNIQUE (RequestId, ProductId));
+CREATE TABLE LineItem (
+Id 				int 		PRIMARY KEY IDENTITY(1,1),
+RequestId 		int 		not null,
+ProductId 		int 		not null,
+Quantity 		int 		not null,
+FOREIGN KEY (ProductId) REFERENCES Product(Id),
+FOREIGN KEY (RequestId) REFERENCES Request(Id),
+CONSTRAINT UQ_LineItem_Req_Prod UNIQUE (RequestId, ProductId)
+);

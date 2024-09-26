@@ -1,0 +1,71 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{98A1C9C8-9647-4122-AF9C-74F517F9408C}|PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj|c:\\users\\graydon kappes\\onedrive\\randystreeservice\\capstone\\prsentityframeworkconsole\\prsentityframeworkconsole\\manager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A1C9C8-9647-4122-AF9C-74F517F9408C}|PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj|solutionrelative:prsentityframeworkconsole\\manager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98A1C9C8-9647-4122-AF9C-74F517F9408C}|PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj|c:\\users\\graydon kappes\\onedrive\\randystreeservice\\capstone\\prsentityframeworkconsole\\prsentityframeworkconsole\\operations.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A1C9C8-9647-4122-AF9C-74F517F9408C}|PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj|solutionrelative:prsentityframeworkconsole\\operations.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98A1C9C8-9647-4122-AF9C-74F517F9408C}|PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj|c:\\users\\graydon kappes\\onedrive\\randystreeservice\\capstone\\prsentityframeworkconsole\\prsentityframeworkconsole\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A1C9C8-9647-4122-AF9C-74F517F9408C}|PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj|solutionrelative:prsentityframeworkconsole\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Manager.cs",
+              "DocumentMoniker": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\Manager.cs",
+              "RelativeDocumentMoniker": "PRSEntityFrameworkConsole\\Manager.cs",
+              "ToolTip": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\Manager.cs",
+              "RelativeToolTip": "PRSEntityFrameworkConsole\\Manager.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAgwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-18T13:58:17.297Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Operations.cs",
+              "DocumentMoniker": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\Operations.cs",
+              "RelativeDocumentMoniker": "PRSEntityFrameworkConsole\\Operations.cs",
+              "ToolTip": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\Operations.cs",
+              "RelativeToolTip": "PRSEntityFrameworkConsole\\Operations.cs",
+              "ViewState": "AgIAAFQAAAAAAAAAAAAmwFAAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-18T13:55:20.256Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\Program.cs",
+              "RelativeDocumentMoniker": "PRSEntityFrameworkConsole\\Program.cs",
+              "ToolTip": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\Program.cs",
+              "RelativeToolTip": "PRSEntityFrameworkConsole\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-09-18T03:30:15.399Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

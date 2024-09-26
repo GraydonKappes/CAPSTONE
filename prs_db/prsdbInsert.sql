@@ -1,7 +1,7 @@
 USE prsdb
 
 -- Insert sample [User]
-INSERT INTO [User] (Username, Password, FirstName, LastName, PhoneNumber, Email, PhoneNumber, Email, Reviewer, Admin) VALUES
+INSERT INTO [User] (Username, Password, FirstName, LastName, PhoneNumber, Email, Reviewer, Admin) VALUES
 ('RReyonolds', 'pass123', 'Ryan', 'Reynolds', '(555) 123-4567', 'RReynolds@techco.com', 1, 0),
 ('EClarke', 'Khaleesi', 'Emilia', 'Clarke', '(555) 987-6543', 'EClarke@techco.com', 0, 1),
 ('GKappes', 'Kxkappo1', 'Graydon', 'Kappes', '(555) 246-8135', 'GKappes@techco.com', 0, 0);
@@ -15,20 +15,18 @@ INSERT INTO Vendor (Code, Name, Address, City, State, Zip, PhoneNumber, Email) V
 
 -- Insert sample Product
 INSERT INTO Product(VendorId, PartNumber, Name, Price, Unit) VALUES
-(1, 'B07ZGLLWBT', 'Dell XPS 15 Laptop', 1799.99),
-(1, 'B07W6ZQJN8', 'Logitech MX Master 3 Mouse', 99.99),
-(2, 'KLQ-00001', 'Microsoft 365 Business Standard (Annual)', 149.99),
-(2, '9NN-00003', 'Visual Studio Professional Subscription (Annual)', 799.99),
-(3, '65297935BA01A12', 'Adobe Creative Cloud (Annual)', 599.88),
-(4, '210-AVNH', 'Dell UltraSharp U2720Q 27" 4K Monitor', 719.99)
-;
+(1, 'B07ZGLLWBT', 'Dell XPS 15 Laptop', 1799.99, 'Each'),
+(1, 'B07W6ZQJN8', 'Logitech MX Master 3 Mouse', 99.99, 'Each'),
+(2, 'KLQ-00001', 'Microsoft 365 Business Standard (Annual)', 149.99, 'License'),
+(2, '9NN-00003', 'Visual Studio Professional Subscription (Annual)', 799.99, 'License'),
+(3, '65297935BA01A12', 'Adobe Creative Cloud (Annual)', 599.88, 'License'),
+(4, '210-AVNH', 'Dell UltraSharp U2720Q 27" 4K Monitor', 719.99, 'Each');
 
 -- Insert sample Request
 INSERT INTO Request(UserId, Description, Justification, DateNeeded, DeliveryMode, Status, Total, SubmittedDate, ReasonForRejection) VALUES
-(1, 'New Developer Workstation', 'Setting up for new hire', '2024-09-15', 'Delivery', 'New', 2619.97),
-(2, 'Software Licenses Renewal', 'Annual license renewals', '2024-10-01', 'Online Delivery', 'Approved', 1549.86),
-(3, 'Team Peripherals Upgrade', 'Improving team productivity', '2024-09-30', 'Delivery', 'In Review', 499.95);
-
+(1, 'New Developer Workstation', 'Setting up for new hire', '2024-09-15', 'Delivery', 'New', 2619.97, GETDATE(), NULL),
+(2, 'Software Licenses Renewal', 'Annual license renewals', '2024-10-01', 'Online Delivery', 'Approved', 1549.86, GETDATE(), NULL),
+(3, 'Team Peripherals Upgrade', 'Improving team productivity', '2024-09-30', 'Delivery', 'In Review', 499.95, GETDATE(), NULL);
 
 -- Insert sample LineItem
 INSERT INTO LineItem(RequestId, ProductId, Quantity) VALUES
