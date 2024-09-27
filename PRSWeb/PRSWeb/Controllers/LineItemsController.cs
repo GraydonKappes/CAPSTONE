@@ -41,6 +41,12 @@ namespace PRSWeb.Controllers
             return lineItem;
         }
 
+        [HttpGet("requestId/{requestId}")]
+        public IEnumerable<LineItem> GetRequestLines(int requestId)
+        {
+            return _context.LineItems.Where(l => l.RequestId == requestId).ToList();
+        }
+
         // PUT: api/LineItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

@@ -75,14 +75,35 @@ namespace PRSWeb.Controllers
         // POST: api/Requests
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Request>> PostRequest(Request request)
+        public async Task<ActionResult<Request>> PostRequest(RequestForm requestForm)
         {
+            Request request= new Request();
+            string maxReqNbr = _context.Requests.Max(r => r.RequestNumber);
+            request.UserId = requestForm.UserId;
+            request.RequestNumber = incrementRequestNumber(maxReqNbr);
+            request.Description = requestForm.Description;
+            request.Justification = requestForm.Description;
+            request.DateNeeded = requestForm.DateNeeded;
+            request.DeliveryMode = requestForm.DeliveryMode;
             request.Status = "NEW";
+            request.Total = 0.0m;
             request.SubmittedDate = DateTime.Now;
             _context.Requests.Add(request);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetRequest", new { id = request.Id }, request);
+        }
+
+        private string incrementRequestNumber(string maxReqNbr)
+        {
+            string nextReqNbr = "";
+            int nbr = Int32.Parse(maxReqNbr.Substring(0,7));
+            nbr++;
+            nextReqNbr += maxReqNbr.Substring(0, 7);
+            string nbrStr = nbr.ToString();
+            nbrStr = nbrStr.PadLeft(4, '0');
+            nextReqNbr += nbrStr;
+            return nextReqNbr;
         }
 
         // DELETE: api/Requests/5
@@ -106,85 +127,75 @@ namespace PRSWeb.Controllers
             return _context.Requests.Any(e => e.Id == id);
         }
 
-        [HttpGet("{requestId}/count")]
-        public int CountRequestLines(int requestId)
-        {
-            return _context.LineItems.Count(l => l.RequestId == requestId);
-        }
 
-        [HttpPut]
-        public async Task<IActionResult> RequestSubmitReview(int id, Request request)
+
+        [HttpPut("review/submit/{id}")]
+        public async Task<IActionResult> RequestSubmitReview(int id)
         {
-            if (id != request.Id) {
-                return BadRequest();
+            var request = await _context.Requests.FindAsync(id);
+            if (request == null) {
+                return NotFound();
             }
+
+            // TODO: Special Requirement for requests totals under $50 - skip for now - Sean to provide
+
             request.Status = "REVIEW";
 
-            _context.Entry(request).State = EntityState.Modified;
-            
             try {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
-                if (!RequestExists(id)) {
-                    return NotFound();
-                }
-                else {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
         }
         //api/Requests/review/id
-        [HttpPut("review/{id}")]
-        public async Task<IActionResult> RequestReview(int id)
+        [HttpGet("review/list")]
+        public async Task<ActionResult<IEnumerable<Request>>> GetReviewRequests()
         {
-            var existingRequest = await _context.Requests.FindAsync(id);
-            if (existingRequest == null) {
+            return await _context.Requests
+                .Where(r => r.Status == "REVIEW")
+                .ToListAsync();
+        }
+
+        [HttpPut("review/approve/{id}")]
+        public async Task<IActionResult> RequestApprove(int id)
+        {
+            var request = await _context.Requests.FindAsync(id);
+            if (request == null) {
                 return NotFound();
             }
 
-            existingRequest.Status = "REVIEW";
-
-            try {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException) {
-                if (!RequestExists(id)) {
-                    return NotFound();
-                }
-                else {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-        [HttpPut]
-        public async Task<IActionResult> RequestApprove(int id, Request request)
-        {
-            if (id != request.Id) {
-                return BadRequest();
-            }
             request.Status = "APPROVED";
 
-            _context.Entry(request).State = EntityState.Modified;
+            try {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) {
+                throw;
+            }
+
+            return NoContent();
+        }
+        [HttpPut("review/reject/{id}")]
+        public async Task<IActionResult> RequestReject(int id)
+        {
+            var request = await _context.Requests.FindAsync(id);
+            if (request == null) {
+                return NotFound();
+            }
+
+            request.Status = "REJECTED";
 
             try {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
-                if (!RequestExists(id)) {
-                    return NotFound();
-                }
-                else {
-                    throw;
-                }
+                throw;
             }
 
             return NoContent();
         }
-
     }
 }

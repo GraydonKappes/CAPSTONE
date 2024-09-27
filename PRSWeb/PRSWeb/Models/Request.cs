@@ -12,6 +12,8 @@ public partial class Request
     [Key]
     public int Id { get; set; }
 
+    public string RequestNumber { get; set; }
+
     public int UserId { get; set; }
 
     [StringLength(100)]
