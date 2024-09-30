@@ -77,33 +77,34 @@ namespace PRSWeb.Controllers
         [HttpPost]
         public async Task<ActionResult<Request>> PostRequest(RequestForm requestForm)
         {
-            Request request= new Request();
-            string maxReqNbr = _context.Requests.Max(r => r.RequestNumber);
+            Request request = new Request();
             request.UserId = requestForm.UserId;
-            request.RequestNumber = incrementRequestNumber(maxReqNbr);
+            request.RequestNumber = GenerateRequestNumber();
             request.Description = requestForm.Description;
-            request.Justification = requestForm.Description;
+            request.Justification = requestForm.Justification;
             request.DateNeeded = requestForm.DateNeeded;
             request.DeliveryMode = requestForm.DeliveryMode;
             request.Status = "NEW";
             request.Total = 0.0m;
             request.SubmittedDate = DateTime.Now;
+
             _context.Requests.Add(request);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetRequest", new { id = request.Id }, request);
         }
 
-        private string incrementRequestNumber(string maxReqNbr)
+        private string GenerateRequestNumber()
         {
-            string nextReqNbr = "";
-            int nbr = Int32.Parse(maxReqNbr.Substring(0,7));
-            nbr++;
-            nextReqNbr += maxReqNbr.Substring(0, 7);
-            string nbrStr = nbr.ToString();
-            nbrStr = nbrStr.PadLeft(4, '0');
-            nextReqNbr += nbrStr;
-            return nextReqNbr;
+            //todays date and format
+            string today = DateTime.Now.ToString("yyMMdd");
+            //how many request have been added today
+            int count = _context.Requests.Count(r => r.RequestNumber.StartsWith($"REQ{today}"));
+            //increment that mug
+            int requestNumber = count + 1;
+
+            //format the request numba
+            return $"REQ{today}{requestNumber:D2}";
         }
 
         // DELETE: api/Requests/5

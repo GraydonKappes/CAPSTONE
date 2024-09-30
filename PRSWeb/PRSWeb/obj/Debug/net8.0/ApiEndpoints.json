@@ -73,6 +73,22 @@
   },
   {
     "ContainingType": "PRSWeb.Controllers.LineItemsController",
+    "Method": "DeleteLineItem",
+    "RelativePath": "api/LineItems/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PRSWeb.Controllers.LineItemsController",
     "Method": "PutLineItem",
     "RelativePath": "api/LineItems/{id}",
     "HttpMethod": "PUT",
@@ -87,22 +103,6 @@
       {
         "Name": "lineItem",
         "Type": "PRSWeb.Models.LineItem",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PRSWeb.Controllers.LineItemsController",
-    "Method": "DeleteLineItem",
-    "RelativePath": "api/LineItems/{id}",
-    "HttpMethod": "DELETE",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Int32",
         "IsRequired": true
       }
     ],
@@ -272,8 +272,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "request",
-        "Type": "PRSWeb.Models.Request",
+        "Name": "requestForm",
+        "Type": "PRSWeb.Models.RequestForm",
         "IsRequired": true
       }
     ],

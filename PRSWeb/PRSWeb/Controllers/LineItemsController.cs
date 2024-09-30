@@ -47,6 +47,37 @@ namespace PRSWeb.Controllers
             return _context.LineItems.Where(l => l.RequestId == requestId).ToList();
         }
 
+        // POST: api/LineItems
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<LineItem>> PostLineItem(LineItem lineItem)
+        {
+            _context.LineItems.Add(lineItem);
+            await _context.SaveChangesAsync();
+
+            await RecalcTotal(lineItem.RequestId);
+
+            return CreatedAtAction("GetLineItem", new { id = lineItem.Id }, lineItem);
+        }
+
+        // DELETE: api/LineItems/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLineItem(int id)
+        {
+            var lineItem = await _context.LineItems.FindAsync(id);
+            if (lineItem == null) {
+                return NotFound();
+            }
+
+            _context.LineItems.Remove(lineItem);
+
+            await _context.SaveChangesAsync();
+
+            await RecalcTotal(lineItem.RequestId);
+
+            return NoContent();
+        }
+
         // PUT: api/LineItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -74,33 +105,7 @@ namespace PRSWeb.Controllers
                     throw;
                 }
             }
-
-            return NoContent();
-        }
-
-        // POST: api/LineItems
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<LineItem>> PostLineItem(LineItem lineItem)
-        {
-            _context.LineItems.Add(lineItem);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetLineItem", new { id = lineItem.Id }, lineItem);
-        }
-
-        // DELETE: api/LineItems/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteLineItem(int id)
-        {
-            var lineItem = await _context.LineItems.FindAsync(id);
-            if (lineItem == null)
-            {
-                return NotFound();
-            }
-
-            _context.LineItems.Remove(lineItem);
-            await _context.SaveChangesAsync();
+            await RecalcTotal(lineItem.RequestId);
 
             return NoContent();
         }
@@ -108,6 +113,19 @@ namespace PRSWeb.Controllers
         private bool LineItemExists(int id)
         {
             return _context.LineItems.Any(e => e.Id == id);
+        }
+
+        private async Task RecalcTotal(int requestId)
+        {
+            var request = await _context.Requests.FindAsync(requestId);
+            if (request != null) {
+                request.Total = await _context.LineItems
+                    .Where(li => li.RequestId == requestId)
+                    .Include(li => li.Product)
+                    .SumAsync(li => li.Quantity * li.Product.Price);
+
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
