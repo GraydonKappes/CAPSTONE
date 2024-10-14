@@ -1,6 +1,0 @@
-@PRSWeb_HostAddress = http://localhost:5264
-
-GET {{PRSWeb_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
