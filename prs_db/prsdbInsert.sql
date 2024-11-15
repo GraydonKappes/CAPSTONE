@@ -1,7 +1,7 @@
-USE prsdb
+USE prsdb;
 
 -- Insert sample [User]
-INSERT INTO [User] (Username, Password, FirstName, LastName, PhoneNumber, Email, Reviewer, Admin) VALUES
+INSERT INTO User (Username, Password, FirstName, LastName, PhoneNumber, Email, Reviewer, Admin) VALUES
 ('RReyonolds', 'pass123', 'Ryan', 'Reynolds', '(555) 123-4567', 'RReynolds@techco.com', 1, 0),
 ('EClarke', 'Khaleesi', 'Emilia', 'Clarke', '(555) 987-6543', 'EClarke@techco.com', 0, 1),
 ('GKappes', 'Kxkappo1', 'Graydon', 'Kappes', '(555) 246-8135', 'GKappes@techco.com', 0, 0);
@@ -24,9 +24,9 @@ INSERT INTO Product(VendorId, PartNumber, Name, Price, Unit) VALUES
 
 -- Insert sample Request
 INSERT INTO Request(UserId, Description, Justification, DateNeeded, DeliveryMode, Status, Total, SubmittedDate, ReasonForRejection) VALUES
-(1, 'New Developer Workstation', 'Setting up for new hire', '2024-09-15', 'Delivery', 'New', 2619.97, GETDATE(), NULL),
-(2, 'Software Licenses Renewal', 'Annual license renewals', '2024-10-01', 'Online Delivery', 'Approved', 1549.86, GETDATE(), NULL),
-(3, 'Team Peripherals Upgrade', 'Improving team productivity', '2024-09-30', 'Delivery', 'In Review', 499.95, GETDATE(), NULL);
+(1, 'New Developer Workstation', 'Setting up for new hire', '2024-09-15', 'Delivery', 'New', 2619.97, curdate(), NULL),
+(2, 'Software Licenses Renewal', 'Annual license renewals', '2024-10-01', 'Online Delivery', 'Approved', 1549.86, curdate(), NULL),
+(3, 'Team Peripherals Upgrade', 'Improving team productivity', '2024-09-30', 'Delivery', 'In Review', 499.95, curdate(), NULL);
 
 -- Insert sample LineItem
 INSERT INTO LineItem(RequestId, ProductId, Quantity) VALUES

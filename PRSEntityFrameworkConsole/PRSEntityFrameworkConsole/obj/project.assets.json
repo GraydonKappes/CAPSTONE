@@ -4112,11 +4112,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj",
+      "projectUniqueName": "B:\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj",
       "projectName": "PRSEntityFrameworkConsole",
-      "projectPath": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj",
+      "projectPath": "B:\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole.csproj",
       "packagesPath": "C:\\Users\\Graydon Kappes\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Graydon Kappes\\OneDrive\\RandysTreeService\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\obj\\",
+      "outputPath": "B:\\CAPSTONE\\PRSEntityFrameworkConsole\\PRSEntityFrameworkConsole\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

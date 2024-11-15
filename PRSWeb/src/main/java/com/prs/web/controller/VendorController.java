@@ -4,50 +4,72 @@ import com.prs.web.model.Vendor;
 import com.prs.web.db.VendorDb;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/vendors")
+@CrossOrigin
 public class VendorController {
-
     @Autowired
-    private VendorDb vendorDb;
+    private VendorDb repo;
 
     @GetMapping
-    public List<Vendor> getAllVendors() {
-        return vendorDb.findAll();
+    public List<Vendor> getAll() {
+        return repo.findAll();
     }
 
     @GetMapping("/{id}")
-    public Vendor getVendorById(@PathVariable int id) {
-        return vendorDb.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vendor not found with id: " + id));
+    public ResponseEntity<Vendor> getById(@PathVariable int id) {
+        return repo.findById(id)
+                .map(x -> new ResponseEntity<>(x, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Vendor createVendor(@RequestBody Vendor vendor) {
-        return vendorDb.save(vendor);
+    public ResponseEntity<?> create(@RequestBody Vendor vendor) {
+        try {
+            Vendor savedVendor = repo.save(vendor);
+            return new ResponseEntity<>(savedVendor, HttpStatus.CREATED);
+        } catch (Exception e) {
+            System.err.println("Error creating vendor: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>("Error creating vendor: " + e.getMessage(), 
+                                     HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/{id}")
-    public Vendor updateVendor(@PathVariable int id, @RequestBody Vendor vendor) {
-        if (!vendorDb.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vendor not found with id: " + id);
+    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Vendor vendor) {
+        try {
+            if (!repo.existsById(id)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            vendor.setId(id);
+            Vendor updatedVendor = repo.save(vendor);
+            return new ResponseEntity<>(updatedVendor, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("Error updating vendor: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>("Error updating vendor: " + e.getMessage(), 
+                                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        vendor.setId(id);
-        return vendorDb.save(vendor);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteVendor(@PathVariable int id) {
-        if (!vendorDb.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vendor not found with id: " + id);
+    public ResponseEntity<?> delete(@PathVariable int id) {
+        try {
+            if (!repo.existsById(id)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            repo.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            System.err.println("Error deleting vendor: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>("Error deleting vendor: " + e.getMessage(), 
+                                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        vendorDb.deleteById(id);
     }
 }
