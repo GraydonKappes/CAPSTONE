@@ -11,6 +11,7 @@ export class RequestService {
 
   constructor(private http: HttpClient) { }
 
+  // CRUD Operations
   list(): Observable<Request[]> {
     return this.http.get<Request[]>(this.apiUrl);
   }
@@ -23,16 +24,21 @@ export class RequestService {
     return this.http.post<Request>(this.apiUrl, request);
   }
 
-  update(request: Request): Observable<Request> {
-    return this.http.put<Request>(`${this.apiUrl}/${request.id}`, request);
+  update(id: number, request: Request): Observable<Request> {
+    return this.http.put<Request>(`${this.apiUrl}/${id}`, request);
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  // Business Logic Operations
   submitForReview(id: number): Observable<Request> {
     return this.http.put<Request>(`${this.apiUrl}/${id}/submit-review`, {});
+  }
+
+  getRequestsForReview(): Observable<Request[]> {
+    return this.http.get<Request[]>(`${this.apiUrl}/reviews`);
   }
 
   approve(id: number): Observable<Request> {
@@ -40,14 +46,6 @@ export class RequestService {
   }
 
   reject(id: number, reason: string): Observable<Request> {
-    return this.http.put<Request>(`${this.apiUrl}/${id}/reject`, { reason });
-  }
-
-  getRequestsForReview(): Observable<Request[]> {
-    return this.http.get<Request[]>(`${this.apiUrl}/reviews`);
-  }
-
-  getRequestsForUser(userId: number): Observable<Request[]> {
-    return this.http.get<Request[]>(`${this.apiUrl}/user/${userId}`);
+    return this.http.put<Request>(`${this.apiUrl}/${id}/reject?reasonForRejection=${reason}`, {});
   }
 }

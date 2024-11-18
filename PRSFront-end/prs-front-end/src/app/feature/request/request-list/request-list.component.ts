@@ -2,116 +2,241 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RequestService } from '../../../service/request.service';
-import { Request } from '../../../model/request.interface';
+import { LineItemService } from '../../../service/line-item.service';
+import { ProductService } from '../../../service/product.service';
 import { AuthService } from '../../../service/auth.service';
-import { CurrencyPipe } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { Request } from '../../../model/request.interface';
+import { LineItem } from '../../../model/line-item.interface';
+import { Product } from '../../../model/product.interface';
 
 @Component({
   selector: 'app-request-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyPipe],
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="container mt-4">
       <h1>Purchase Requests</h1>
       
       <a routerLink="/requests/create" class="btn btn-primary mb-3">Create New Request</a>
       
-      <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Description</th>
-              <th>Justification</th>
-              <th>Status</th>
-              <th>Date Needed</th>
-              <th>Total</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (requests.length === 0) {
+      @if (loading) {
+        <div class="text-center">Loading...</div>
+      } @else if (error) {
+        <div class="alert alert-danger">{{error}}</div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
               <tr>
-                <td colspan="7" class="text-center">No requests found</td>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Justification</th>
+                <th>Status</th>
+                <th>Date Needed</th>
+                <th>Total</th>
+                <th>Actions</th>
               </tr>
-            }
-            @for (request of requests; track request.id) {
-              <tr>
-                <td>{{request.id}}</td>
-                <td>{{request.description}}</td>
-                <td>{{request.justification}}</td>
-                <td>{{request.status}}</td>
-                <td>{{request.dateNeeded | date}}</td>
-                <td>{{request.total | currency}}</td>
-                <td>
-                  @if (request.status === 'NEW' && request.userId === authService.getCurrentUserId()) {
-                    <button (click)="submitForReview(request.id!)" 
-                            class="btn btn-primary btn-sm me-1">Submit</button>
-                    <a [routerLink]="['/requests', request.id, 'line-items']" 
-                       class="btn btn-warning btn-sm">Edit Lines</a>
-                  }
-                  
-                  @if (authService.isReviewer() && request.status === 'REVIEW' && request.userId !== authService.getCurrentUserId()) {
-                    <button (click)="approve(request.id!)" 
-                            class="btn btn-success btn-sm me-1">Approve</button>
-                    <button (click)="reject(request.id!)" 
-                            class="btn btn-danger btn-sm">Reject</button>
-                  }
+            </thead>
+            <tbody>
+              @if (requests.length === 0) {
+                <tr>
+                  <td colspan="7" class="text-center">No requests found</td>
+                </tr>
+              }
+              @for (request of requests; track request.id) {
+                <tr>
+                  <td>{{request.id}}</td>
+                  <td>{{request.description}}</td>
+                  <td>{{request.justification}}</td>
+                  <td>
+                    <span [class]="getStatusBadgeClass(request.status)">
+                      {{request.status}}
+                    </span>
+                  </td>
+                  <td>{{request.dateNeeded | date}}</td>
+                  <td>{{request.total | currency}}</td>
+                  <td>
+                    @if (request.status === 'NEW') {
+                      <button (click)="submitForReview(request.id!)" 
+                              class="btn btn-primary btn-sm me-1">Submit</button>
+                      <a [routerLink]="['/requests', request.id, 'line-items']" 
+                         class="btn btn-warning btn-sm">Edit Lines</a>
+                    }
+                    
+                    @if (canReview(request)) {
+                      <button (click)="approve(request.id!)" 
+                              class="btn btn-success btn-sm me-1">Approve</button>
+                      <button (click)="reject(request.id!)" 
+                              class="btn btn-danger btn-sm">Reject</button>
+                    }
 
-                  @if (request.status === 'REJECTED') {
-                    <span class="text-danger">{{request.reasonForRejection}}</span>
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+                    @if (request.status === 'REJECTED') {
+                      <span class="text-danger">{{request.reasonForRejection}}</span>
+                    }
+                  </td>
+                </tr>
+                <!-- Line Items Expansion Row -->
+                @if (expandedRequestId === request.id) {
+                  <tr>
+                    <td colspan="7">
+                      <div class="p-3 bg-light">
+                        <h6>Line Items</h6>
+                        <table class="table table-sm">
+                          <thead>
+                            <tr>
+                              <th>Product</th>
+                              <th>Quantity</th>
+                              <th>Price</th>
+                              <th>Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (item of lineItems[request.id] || []; track item.id) {
+                              <tr>
+                                <td>{{getProductName(item.productId)}}</td>
+                                <td>{{item.quantity}}</td>
+                                <td>{{getProductPrice(item.productId) | currency}}</td>
+                                <td>{{calculateLineTotal(item) | currency}}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
-  `
+  `,
+  styles: [`
+    .status-badge {
+      padding: 0.25em 0.5em;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+    .status-new { background-color: #e9ecef; }
+    .status-review { background-color: #fff3cd; }
+    .status-approved { background-color: #d4edda; }
+    .status-rejected { background-color: #f8d7da; }
+  `]
 })
 export class RequestListComponent implements OnInit {
   requests: Request[] = [];
+  lineItems: { [requestId: number]: LineItem[] } = {};
+  products: { [id: number]: Product } = {};
+  loading = true;
+  error: string | null = null;
+  expandedRequestId: number | null = null;
 
   constructor(
     private requestService: RequestService,
+    private lineItemService: LineItemService,
+    private productService: ProductService,
     public authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.loadRequests();
+    this.loadProducts();
   }
 
   loadRequests(): void {
-    if (this.authService.isReviewer()) {
-      forkJoin({
-        reviewRequests: this.requestService.getRequestsForReview(),
-        ownRequests: this.requestService.getRequestsForUser(this.authService.getCurrentUserId()!)
-      }).subscribe(({ reviewRequests, ownRequests }) => {
-        this.requests = [...reviewRequests, ...ownRequests]
-          .filter((request, index, self) => 
-            index === self.findIndex((r) => r.id === request.id)
-          );
+    this.requestService.list().subscribe({
+      next: (requests) => {
+        this.requests = requests;
+        this.loadLineItemsForRequests();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = 'Failed to load requests';
+        this.loading = false;
+        console.error('Error loading requests:', err);
+      }
+    });
+  }
+
+  loadLineItemsForRequests(): void {
+    this.requests.forEach(request => {
+      this.lineItemService.getByRequestId(request.id).subscribe({
+        next: (items) => {
+          this.lineItems[request.id] = items;
+        },
+        error: (err) => console.error(`Error loading line items for request ${request.id}:`, err)
       });
-    } else {
-      this.requestService.getRequestsForUser(this.authService.getCurrentUserId()!)
-        .subscribe(requests => this.requests = requests);
-    }
+    });
+  }
+
+  loadProducts(): void {
+    this.productService.list().subscribe({
+      next: (products) => {
+        products.forEach(product => {
+          this.products[product.id] = product;
+        });
+      },
+      error: (err) => console.error('Error loading products:', err)
+    });
+  }
+
+  getProductName(productId: number): string {
+    return this.products[productId]?.name || 'Loading...';
+  }
+
+  getProductPrice(productId: number): number {
+    return this.products[productId]?.price || 0;
+  }
+
+  calculateLineTotal(item: LineItem): number {
+    return item.quantity * this.getProductPrice(item.productId);
+  }
+
+  getStatusBadgeClass(status: string): string {
+    return `status-badge status-${status.toLowerCase()}`;
+  }
+
+  canReview(request: Request): boolean {
+    return this.authService.isReviewer() && 
+           request.status === 'REVIEW' && 
+           request.userId !== this.authService.getCurrentUserId();
   }
 
   submitForReview(id: number): void {
-    this.requestService.submitForReview(id).subscribe(() => this.loadRequests());
+    this.requestService.submitForReview(id).subscribe({
+      next: () => this.loadRequests(),
+      error: (err) => {
+        console.error('Error submitting request for review:', err);
+        this.error = 'Failed to submit request for review';
+      }
+    });
   }
 
   approve(id: number): void {
-    this.requestService.approve(id).subscribe(() => this.loadRequests());
+    this.requestService.approve(id).subscribe({
+      next: () => this.loadRequests(),
+      error: (err) => {
+        console.error('Error approving request:', err);
+        this.error = 'Failed to approve request';
+      }
+    });
   }
 
   reject(id: number): void {
     const reason = prompt('Please enter rejection reason:');
     if (reason) {
-      this.requestService.reject(id, reason).subscribe(() => this.loadRequests());
+      this.requestService.reject(id, reason).subscribe({
+        next: () => this.loadRequests(),
+        error: (err) => {
+          console.error('Error rejecting request:', err);
+          this.error = 'Failed to reject request';
+        }
+      });
     }
+  }
+
+  toggleExpand(requestId: number): void {
+    this.expandedRequestId = this.expandedRequestId === requestId ? null : requestId;
   }
 }

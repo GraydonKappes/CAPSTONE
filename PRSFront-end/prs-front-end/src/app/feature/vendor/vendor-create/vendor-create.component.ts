@@ -1,18 +1,22 @@
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { Component, OnInit } from '@angular/core';
-import { Vendor } from '../../../model/vendor.interface';
-import { VendorService } from '../../../service/vendor.service';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { VendorService } from '../../../service/vendor.service';
+import { Vendor, VendorCreate } from '../../../model/vendor.interface';
 
-// src/app/feature/vendor/vendor-create/vendor-create.component.ts
 @Component({
   selector: 'app-vendor-create',
   standalone: true,
-  imports: [RouterModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="container">
+    <div class="container mt-4">
       <h1>Create Vendor</h1>
+      
+      @if (errorMessage) {
+        <div class="alert alert-danger">{{errorMessage}}</div>
+      }
+
       <form (ngSubmit)="save()" #vendorForm="ngForm">
         <div class="mb-3">
           <label class="form-label">Code:</label>
@@ -53,7 +57,7 @@ import { CommonModule } from '@angular/common';
   `
 })
 export class VendorCreateComponent {
-  vendor: Vendor = {
+  vendor: VendorCreate = {
     code: '',
     name: '',
     address: '',
@@ -63,6 +67,7 @@ export class VendorCreateComponent {
     phoneNumber: '',
     email: ''
   };
+  errorMessage = '';
 
   constructor(
     private vendorService: VendorService,
@@ -70,8 +75,12 @@ export class VendorCreateComponent {
   ) {}
 
   save(): void {
-    this.vendorService.create(this.vendor).subscribe(() => {
-      this.router.navigate(['/vendors']);
+    this.vendorService.create(this.vendor).subscribe({
+      next: () => this.router.navigate(['/vendors']),
+      error: (error) => {
+        console.error('Error creating vendor:', error);
+        this.errorMessage = 'Failed to create vendor';
+      }
     });
   }
 }

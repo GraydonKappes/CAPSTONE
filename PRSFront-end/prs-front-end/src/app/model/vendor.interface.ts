@@ -1,6 +1,6 @@
 // src/app/model/vendor.interface.ts
 export interface Vendor {
-    id?: number;
+    id: number;
     code: string;
     name: string;
     address: string;
@@ -10,3 +10,5 @@ export interface Vendor {
     phoneNumber: string;
     email: string;
 }
+
+export type VendorCreate = Omit<Vendor, 'id'>;

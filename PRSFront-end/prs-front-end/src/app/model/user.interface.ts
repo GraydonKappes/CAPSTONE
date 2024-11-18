@@ -1,8 +1,8 @@
 // src/app/model/user.interface.ts
 export interface User {
-    id?: number;
+    id: number;
     username: string;
-    password?: string;
+    password: string;
     firstName: string;
     lastName: string;
     phoneNumber: string;
@@ -10,3 +10,5 @@ export interface User {
     reviewer: boolean;
     admin: boolean;
 }
+
+export type UserCreate = Omit<User, 'id'>;

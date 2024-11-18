@@ -1,17 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
-import { LineItemService } from '../../../service/line-item.service';
 import { RequestService } from '../../../service/request.service';
+import { LineItemService } from '../../../service/line-item.service';
+import { ProductService } from '../../../service/product.service';
 import { AuthService } from '../../../service/auth.service';
-import { LineItem } from '../../../model/line-item.interface';
 import { Request } from '../../../model/request.interface';
+import { LineItem } from '../../../model/line-item.interface';
+import { Product } from '../../../model/product.interface';
 
 @Component({
   selector: 'app-line-item-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CurrencyPipe],
   template: `
     <div class="container mt-4">
       @if (request) {
@@ -51,27 +53,18 @@ import { Request } from '../../../model/request.interface';
             }
             @for (item of lineItems; track item.id) {
               <tr>
-                <td>{{item.product?.name}}</td>
+                <td>{{getProductName(item.productId)}}</td>
                 <td>{{item.quantity}}</td>
-                <td>{{item.product?.price | currency}}</td>
-                <td>{{(item.quantity * (item.product?.price || 0)) | currency}}</td>
+                <td>{{getProductPrice(item.productId) | currency}}</td>
+                <td>{{calculateItemTotal(item) | currency}}</td>
                 @if (canEdit) {
                   <td>
-                    <button (click)="deleteLineItem(item.id!)" 
+                    <button (click)="deleteLineItem(item.id)" 
                             class="btn btn-danger btn-sm">Delete</button>
                   </td>
                 }
               </tr>
             }
-            <tr>
-              <td [colSpan]="canEdit ? 3 : 2" class="text-end">
-                <strong>Total:</strong>
-              </td>
-              <td><strong>{{calculateTotal() | currency}}</strong></td>
-              @if (canEdit) {
-                <td></td>
-              }
-            </tr>
           </tbody>
         </table>
 
@@ -91,6 +84,7 @@ import { Request } from '../../../model/request.interface';
 export class LineItemListComponent implements OnInit {
   request?: Request;
   lineItems: LineItem[] = [];
+  products: { [id: number]: Product } = {};
   
   get canEdit(): boolean {
     return this.request?.status === 'NEW' && 
@@ -100,6 +94,7 @@ export class LineItemListComponent implements OnInit {
   constructor(
     private lineItemService: LineItemService,
     private requestService: RequestService,
+    private productService: ProductService,
     private route: ActivatedRoute,
     public authService: AuthService
   ) {}
@@ -109,6 +104,7 @@ export class LineItemListComponent implements OnInit {
     if (requestId) {
       this.loadRequest(requestId);
       this.loadLineItems(requestId);
+      this.loadProducts();
     }
   }
 
@@ -124,23 +120,38 @@ export class LineItemListComponent implements OnInit {
     });
   }
 
+  loadProducts(): void {
+    this.productService.list().subscribe(products => {
+      products.forEach(product => {
+        this.products[product.id] = product;
+      });
+    });
+  }
+
+  getProductName(productId: number): string {
+    return this.products[productId]?.name || 'Loading...';
+  }
+
+  getProductPrice(productId: number): number {
+    return this.products[productId]?.price || 0;
+  }
+
+  calculateItemTotal(item: LineItem): number {
+    return item.quantity * this.getProductPrice(item.productId);
+  }
+
   deleteLineItem(id: number): void {
     if (confirm('Are you sure you want to delete this line item?')) {
       this.lineItemService.delete(id).subscribe(() => {
-        this.loadLineItems(this.request!.id!);
+        this.loadLineItems(this.request!.id);
       });
     }
-  }
-
-  calculateTotal(): number {
-    return this.lineItems.reduce((sum, item) => 
-      sum + (item.quantity * (item.product?.price || 0)), 0);
   }
 
   submitForReview(): void {
     if (this.request?.id) {
       this.requestService.submitForReview(this.request.id).subscribe(() => {
-        this.loadRequest(this.request!.id!);
+        this.loadRequest(this.request!.id);
       });
     }
   }

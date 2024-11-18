@@ -2,12 +2,10 @@
 import { Vendor } from './vendor.interface';
 
 export interface Product {
-    id?: number;
+    id: number;
+    vendorId: number;
     partNumber: string;
     name: string;
     price: number;
     unit: string;
-    photoPath?: string;
-    vendorId: number;
-    vendor?: Vendor;
 }

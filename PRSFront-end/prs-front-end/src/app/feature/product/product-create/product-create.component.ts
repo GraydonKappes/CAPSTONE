@@ -1,65 +1,98 @@
 // src/app/feature/product/product-create/product-create.component.ts
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { Product } from '../../../model/product.interface';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '../../../service/product.service';
 import { VendorService } from '../../../service/vendor.service';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { Product } from '../../../model/product.interface';
+import { Vendor } from '../../../model/vendor.interface';
 
 @Component({
   selector: 'app-product-create',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="container">
+    <div class="container mt-4">
       <h1>Create Product</h1>
+      
+      @if (errorMessage) {
+        <div class="alert alert-danger">{{errorMessage}}</div>
+      }
+
       <form (ngSubmit)="save()" #productForm="ngForm">
-        <div class="form-group">
-          <label>Vendor:</label>
-          <select [(ngModel)]="product.vendor" name="vendor" required>
-            <option *ngFor="let v of vendors" [ngValue]="v">{{v.name}}</option>
+        <div class="mb-3">
+          <label class="form-label">Part Number:</label>
+          <input type="text" class="form-control" [(ngModel)]="product.partNumber" 
+                 name="partNumber" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Name:</label>
+          <input type="text" class="form-control" [(ngModel)]="product.name" 
+                 name="name" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Price:</label>
+          <input type="number" class="form-control" [(ngModel)]="product.price" 
+                 name="price" required min="0" step="0.01">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Unit:</label>
+          <input type="text" class="form-control" [(ngModel)]="product.unit" 
+                 name="unit" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Vendor:</label>
+          <select class="form-control" [(ngModel)]="product.vendorId" 
+                  name="vendorId" required>
+            <option [ngValue]="null">Select a vendor</option>
+            @for (vendor of vendors; track vendor.id) {
+              <option [ngValue]="vendor.id">{{vendor.name}}</option>
+            }
           </select>
         </div>
-        <div class="form-group">
-          <label>Part Number:</label>
-          <input [(ngModel)]="product.partNumber" name="partNumber" required>
-        </div>
-        <div class="form-group">
-          <label>Name:</label>
-          <input [(ngModel)]="product.name" name="name" required>
-        </div>
-        <div class="form-group">
-          <label>Price:</label>
-          <input type="number" [(ngModel)]="product.price" name="price" required>
-        </div>
-        <div class="form-group">
-          <label>Unit:</label>
-          <input [(ngModel)]="product.unit" name="unit" required>
-        </div>
-        <button type="submit" [disabled]="!productForm.form.valid">Save</button>
-        <button type="button" (click)="cancel()">Cancel</button>
+
+        <button type="submit" class="btn btn-primary" 
+                [disabled]="!productForm.form.valid">Create</button>
+        <a routerLink="/products" class="btn btn-secondary ms-2">Cancel</a>
       </form>
     </div>
   `
 })
-export class ProductCreateComponent {
-  product: Product = {} as Product;
-  vendors: any[] = [];
+export class ProductCreateComponent implements OnInit {
+  product: Product = {
+    id: 0,
+    vendorId: 0,
+    partNumber: '',
+    name: '',
+    price: 0,
+    unit: ''
+  };
+  vendors: Vendor[] = [];
+  errorMessage: string = '';
 
   constructor(
     private productService: ProductService,
     private vendorService: VendorService,
     private router: Router
-  ) {
+  ) {}
+
+  ngOnInit(): void {
     this.loadVendors();
   }
 
   loadVendors(): void {
-    this.vendorService.list().subscribe(
-      vendors => this.vendors = vendors,
-      error => console.error('Error loading vendors:', error)
-    );
+    this.vendorService.list().subscribe({
+      next: (vendors) => this.vendors = vendors,
+      error: (error) => {
+        console.error('Error loading vendors:', error);
+        this.errorMessage = 'Failed to load vendors';
+      }
+    });
   }
 
   save(): void {

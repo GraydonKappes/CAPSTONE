@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
-import { Product } from '../../../model/product.interface';
 import { ProductService } from '../../../service/product.service';
-import { AuthService } from '../../../service/auth.service';
-import { CurrencyPipe } from '@angular/common';
+import { VendorService } from '../../../service/vendor.service';
+import { Product } from '../../../model/product.interface';
+import { Vendor } from '../../../model/vendor.interface';
 
 @Component({
   selector: 'app-product-detail',
@@ -12,39 +12,39 @@ import { CurrencyPipe } from '@angular/common';
   imports: [CommonModule, RouterModule, CurrencyPipe],
   template: `
     <div class="container mt-4">
-      <h1>Product Details</h1>
       @if (product) {
         <div class="card">
+          <div class="card-header">
+            <h2>Product Details</h2>
+          </div>
           <div class="card-body">
-            <h5 class="card-title">{{product.name}}</h5>
-            <div class="card-text">
-              <p><strong>Part Number:</strong> {{product.partNumber}}</p>
-              <p><strong>Price:</strong> {{product.price | currency}}</p>
-              <p><strong>Unit:</strong> {{product.unit}}</p>
-              <p><strong>Vendor:</strong> {{product.vendor?.name}}</p>
-            </div>
-            <div class="mt-3">
-              <a routerLink="/products" class="btn btn-secondary">Back to List</a>
-              @if (authService.isAdmin()) {
-                <a [routerLink]="['edit']" class="btn btn-primary ms-2">Edit</a>
-                <button (click)="deleteProduct()" class="btn btn-danger ms-2">Delete</button>
-              }
-            </div>
+            <p><strong>ID:</strong> {{product.id}}</p>
+            <p><strong>Part Number:</strong> {{product.partNumber}}</p>
+            <p><strong>Name:</strong> {{product.name}}</p>
+            <p><strong>Price:</strong> {{product.price | currency}}</p>
+            <p><strong>Unit:</strong> {{product.unit}}</p>
+            <p><strong>Vendor:</strong> {{vendorName}}</p>
+          </div>
+          <div class="card-footer">
+            <a [routerLink]="['/products', product.id, 'edit']" 
+               class="btn btn-primary">Edit</a>
+            <a routerLink="/products" class="btn btn-secondary ms-2">Back to List</a>
           </div>
         </div>
       } @else {
-        <p>Loading...</p>
+        <div>Loading...</div>
       }
     </div>
   `
 })
 export class ProductDetailComponent implements OnInit {
   product?: Product;
+  vendorName: string = '';
 
   constructor(
     private productService: ProductService,
-    private route: ActivatedRoute,
-    public authService: AuthService
+    private vendorService: VendorService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -58,23 +58,16 @@ export class ProductDetailComponent implements OnInit {
     this.productService.get(id).subscribe({
       next: (product) => {
         this.product = product;
+        this.loadVendorName(product.vendorId);
       },
-      error: (error) => {
-        console.error('Error loading product:', error);
-      }
+      error: (error) => console.error('Error loading product:', error)
     });
   }
 
-  deleteProduct(): void {
-    if (this.product && confirm('Are you sure you want to delete this product?')) {
-      this.productService.delete(this.product.id!).subscribe({
-        next: () => {
-          window.location.href = '/products';
-        },
-        error: (error) => {
-          console.error('Error deleting product:', error);
-        }
-      });
-    }
+  loadVendorName(vendorId: number): void {
+    this.vendorService.get(vendorId).subscribe({
+      next: (vendor) => this.vendorName = vendor.name,
+      error: (error) => console.error('Error loading vendor:', error)
+    });
   }
 }

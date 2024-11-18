@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { Product } from '../../../model/product.interface';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../../service/product.service';
 import { VendorService } from '../../../service/vendor.service';
+import { Product } from '../../../model/product.interface';
+import { Vendor } from '../../../model/vendor.interface';
 
 @Component({
   selector: 'app-product-edit',
@@ -13,48 +14,71 @@ import { VendorService } from '../../../service/vendor.service';
   template: `
     <div class="container mt-4">
       <h1>Edit Product</h1>
-      @if (product) {
-        <form (ngSubmit)="save()" #productForm="ngForm">
-          <div class="mb-3">
-            <label class="form-label">Vendor:</label>
-            <select class="form-control" [(ngModel)]="product.vendor" name="vendor" required>
-              <option *ngFor="let v of vendors" [ngValue]="v">{{v.name}}</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Part Number:</label>
-            <input class="form-control" [(ngModel)]="product.partNumber" name="partNumber" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Name:</label>
-            <input class="form-control" [(ngModel)]="product.name" name="name" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Price:</label>
-            <input type="number" class="form-control" [(ngModel)]="product.price" name="price" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Unit:</label>
-            <input class="form-control" [(ngModel)]="product.unit" name="unit" required>
-          </div>
-          <button type="submit" class="btn btn-primary" [disabled]="!productForm.form.valid">Save</button>
-          <a routerLink="/products" class="btn btn-secondary ms-2">Cancel</a>
-        </form>
-      } @else {
-        <p>Loading...</p>
+      
+      @if (errorMessage) {
+        <div class="alert alert-danger">{{errorMessage}}</div>
       }
+
+      <form (ngSubmit)="save()" #productForm="ngForm">
+        <div class="mb-3">
+          <label class="form-label">Part Number:</label>
+          <input type="text" class="form-control" [(ngModel)]="product.partNumber" 
+                 name="partNumber" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Name:</label>
+          <input type="text" class="form-control" [(ngModel)]="product.name" 
+                 name="name" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Price:</label>
+          <input type="number" class="form-control" [(ngModel)]="product.price" 
+                 name="price" required min="0" step="0.01">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Unit:</label>
+          <input type="text" class="form-control" [(ngModel)]="product.unit" 
+                 name="unit" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Vendor:</label>
+          <select class="form-control" [(ngModel)]="product.vendorId" 
+                  name="vendorId" required>
+            <option [ngValue]="null">Select a vendor</option>
+            @for (vendor of vendors; track vendor.id) {
+              <option [ngValue]="vendor.id">{{vendor.name}}</option>
+            }
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" 
+                [disabled]="!productForm.form.valid">Save</button>
+        <a routerLink="/products" class="btn btn-secondary ms-2">Cancel</a>
+      </form>
     </div>
   `
 })
 export class ProductEditComponent implements OnInit {
-  product?: Product;
-  vendors: any[] = [];
+  product: Product = {
+    id: 0,
+    vendorId: 0,
+    partNumber: '',
+    name: '',
+    price: 0,
+    unit: ''
+  };
+  vendors: Vendor[] = [];
+  errorMessage: string = '';
 
   constructor(
     private productService: ProductService,
     private vendorService: VendorService,
-    private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -65,36 +89,33 @@ export class ProductEditComponent implements OnInit {
     }
   }
 
-  loadVendors(): void {
-    this.vendorService.list().subscribe({
-      next: (vendors) => {
-        this.vendors = vendors;
-      },
+  loadProduct(id: number): void {
+    this.productService.get(id).subscribe({
+      next: (product) => this.product = product,
       error: (error) => {
-        console.error('Error loading vendors:', error);
+        console.error('Error loading product:', error);
+        this.errorMessage = 'Failed to load product';
       }
     });
   }
 
-  loadProduct(id: number): void {
-    this.productService.get(id).subscribe({
-      next: (product) => {
-        this.product = product;
-      },
+  loadVendors(): void {
+    this.vendorService.list().subscribe({
+      next: (vendors) => this.vendors = vendors,
       error: (error) => {
-        console.error('Error loading product:', error);
+        console.error('Error loading vendors:', error);
+        this.errorMessage = 'Failed to load vendors';
       }
     });
   }
 
   save(): void {
-    if (this.product) {
-      this.productService.update(this.product).subscribe({
-        next: () => {
-          this.router.navigate(['/products']);
-        },
+    if (this.product.id) {
+      this.productService.update(this.product.id, this.product).subscribe({
+        next: () => this.router.navigate(['/products']),
         error: (error) => {
           console.error('Error updating product:', error);
+          this.errorMessage = 'Failed to update product';
         }
       });
     }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product } from '../../../model/product.interface';
 import { ProductService } from '../../../service/product.service';
+import { VendorService } from '../../../service/vendor.service';
 import { AuthService } from '../../../service/auth.service';
 import { CurrencyPipe } from '@angular/common';
 
@@ -36,7 +37,7 @@ import { CurrencyPipe } from '@angular/common';
               <td>{{product.name}}</td>
               <td>{{product.price | currency}}</td>
               <td>{{product.unit}}</td>
-              <td>{{product.vendor?.name}}</td>
+              <td>{{getVendorName(product.vendorId)}}</td>
               <td>
                 <a [routerLink]="['/products', product.id]" 
                    class="btn btn-info btn-sm">View</a>
@@ -44,7 +45,7 @@ import { CurrencyPipe } from '@angular/common';
                 @if (authService.isAdmin()) {
                   <a [routerLink]="['/products', product.id, 'edit']" 
                      class="btn btn-warning btn-sm mx-1">Edit</a>
-                  <button (click)="deleteProduct(product.id!)" 
+                  <button (click)="deleteProduct(product.id)" 
                           class="btn btn-danger btn-sm">Delete</button>
                 }
               </td>
@@ -57,14 +58,17 @@ import { CurrencyPipe } from '@angular/common';
 })
 export class ProductListComponent implements OnInit {
   products: Product[] = [];
+  vendors: { [id: number]: string } = {};
 
   constructor(
     private productService: ProductService,
+    private vendorService: VendorService,
     public authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadVendors();
   }
 
   loadProducts(): void {
@@ -89,5 +93,18 @@ export class ProductListComponent implements OnInit {
         }
       });
     }
+  }
+
+  loadVendors(): void {
+    this.vendorService.list().subscribe({
+      next: (vendors) => {
+        vendors.forEach(v => this.vendors[v.id] = v.name);
+      },
+      error: (error) => console.error('Error loading vendors:', error)
+    });
+  }
+
+  getVendorName(vendorId: number): string {
+    return this.vendors[vendorId] || 'Loading...';
   }
 }

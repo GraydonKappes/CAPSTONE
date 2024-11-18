@@ -32,6 +32,11 @@ import { LineItem } from '../../../model/line-item.interface';
                     name="justification" required></textarea>
         </div>
         <div class="mb-3">
+          <label class="form-label">Date Needed:</label>
+          <input type="date" class="form-control" [(ngModel)]="request.dateNeeded" 
+                 name="dateNeeded" required>
+        </div>
+        <div class="mb-3">
           <label class="form-label">Delivery Mode:</label>
           <select class="form-control" [(ngModel)]="request.deliveryMode" 
                   name="deliveryMode" required>
@@ -62,11 +67,11 @@ import { LineItem } from '../../../model/line-item.interface';
                   </tr>
                 </thead>
                 <tbody>
-                  @for (item of lineItems; track item.productId) {
+                  @for (item of lineItems; track $index) {
                     <tr>
                       <td>
                         <select class="form-control" [(ngModel)]="item.productId" 
-                                [name]="'product-' + item.productId" required>
+                                [name]="'product-' + $index" required>
                           <option [ngValue]="null">Select a product</option>
                           @for (product of products; track product.id) {
                             <option [ngValue]="product.id">
@@ -78,14 +83,14 @@ import { LineItem } from '../../../model/line-item.interface';
                       <td>
                         <input type="number" class="form-control" 
                                [(ngModel)]="item.quantity" 
-                               [name]="'quantity-' + item.productId" 
+                               [name]="'quantity-' + $index" 
                                min="1" required>
                       </td>
                       <td>{{getProductPrice(item.productId) | currency}}</td>
                       <td>{{getLineTotal(item) | currency}}</td>
                       <td>
                         <button type="button" class="btn btn-danger btn-sm" 
-                                (click)="removeLineItem(item)">Remove</button>
+                                (click)="removeLineItem($index)">Remove</button>
                       </td>
                     </tr>
                   }
@@ -118,7 +123,8 @@ export class RequestCreateComponent implements OnInit {
     description: '',
     justification: '',
     deliveryMode: 'Mail',
-    status: 'NEW'
+    status: 'NEW',
+    dateNeeded: new Date()
   };
 
   lineItems: Array<{
@@ -154,11 +160,8 @@ export class RequestCreateComponent implements OnInit {
     });
   }
 
-  removeLineItem(item: any): void {
-    const index = this.lineItems.indexOf(item);
-    if (index > -1) {
-      this.lineItems.splice(index, 1);
-    }
+  removeLineItem(index: number): void {
+    this.lineItems.splice(index, 1);
   }
 
   getProductPrice(productId: number | null): number {
@@ -173,49 +176,48 @@ export class RequestCreateComponent implements OnInit {
 
   getTotal(): number {
     return this.lineItems.reduce((sum, item) => 
-        sum + (this.getLineTotal(item)), 0);
-}
+      sum + this.getLineTotal(item), 0);
+  }
 
-save(): void {
+  save(): void {
     if (!this.authService.getCurrentUserId()) {
-        console.error('No user ID found');
-        return;
+      console.error('No user ID found');
+      return;
     }
 
-    // Create the request
     const newRequest: Partial<Request> = {
-        ...this.request,
-        userId: this.authService.getCurrentUserId()!,
-        status: 'NEW',
-        total: this.getTotal()
+      ...this.request,
+      userId: this.authService.getCurrentUserId()!,
+      status: 'NEW',
+      total: this.getTotal(),
+      submittedDate: new Date()
     };
 
     this.requestService.create(newRequest as Request).subscribe({
-        next: (createdRequest) => {
-            // Create line items
-            const lineItemObservables = this.lineItems
-                .filter(item => item.productId && item.quantity)
-                .map(item => {
-                    const lineItem: Partial<LineItem> = {
-                        requestId: createdRequest.id!,
-                        productId: item.productId!,
-                        quantity: item.quantity
-                    };
-                    return this.lineItemService.create(lineItem as LineItem);
-                });
+      next: (createdRequest) => {
+        const lineItemObservables = this.lineItems
+          .filter(item => item.productId && item.quantity)
+          .map(item => {
+            const lineItem: Partial<LineItem> = {
+              requestId: createdRequest.id,
+              productId: item.productId!,
+              quantity: item.quantity
+            };
+            return this.lineItemService.create(lineItem as LineItem);
+          });
 
-            // Wait for all line items to be created
-            forkJoin(lineItemObservables).subscribe({
-                next: () => {
-                    this.router.navigate(['/requests']);
-                },
-                error: (error) => {
-                    console.error('Error creating line items:', error);
-                }
-            });
-        },
-        error: (error) => {
-            console.error('Error creating request:', error);
-        }
+        forkJoin(lineItemObservables).subscribe({
+          next: () => {
+            this.router.navigate(['/requests']);
+          },
+          error: (error) => {
+            console.error('Error creating line items:', error);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error creating request:', error);
+      }
     });
-  }}
+  }
+}

@@ -4,14 +4,14 @@ export type DeliveryMode = 'Mail' | 'Pickup';
 export type RequestStatus = 'NEW' | 'REVIEW' | 'APPROVED' | 'REJECTED';
 
 export interface Request {
-    id?: number;
+    id: number;
+    userId: number;
     description: string;
     justification: string;
-    dateNeeded?: Date;
-    deliveryMode: 'Pickup' | 'Mail';
-    status: 'NEW' | 'REVIEW' | 'APPROVED' | 'REJECTED';
+    dateNeeded: Date;
+    deliveryMode: string;
+    status: string;
     total: number;
-    submittedDate?: Date;
+    submittedDate: Date;
     reasonForRejection?: string;
-    userId: number;
 }

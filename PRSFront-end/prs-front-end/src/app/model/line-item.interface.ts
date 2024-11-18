@@ -3,10 +3,8 @@ import { Product } from './product.interface';
 import { Request } from './request.interface';
 
 export interface LineItem {
-    id?: number;
-    quantity: number;
+    id: number;
     requestId: number;
     productId: number;
-    product?: Product;
-    request?: Request;
+    quantity: number;
 }
