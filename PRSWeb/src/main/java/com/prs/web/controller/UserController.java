@@ -49,4 +49,12 @@ public class UserController {
         repo.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    @PostMapping("/login")
+    public ResponseEntity<User> login(@RequestBody User user) {
+        User dbUser = repo.findByUsernameAndPassword(user.getUsername(), user.getPassword());
+        if (dbUser != null) {
+            return new ResponseEntity<>(dbUser, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
 }

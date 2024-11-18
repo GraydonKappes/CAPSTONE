@@ -1,34 +1,61 @@
-// LineItem.java
 package com.prs.web.model;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "LineItems")
+@Table(name = "lineitem")
 public class LineItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     
-    @Column(name = "RequestId", nullable = false)
-    private int requestId;
+    @ManyToOne
+    @JoinColumn(name = "RequestId")
+    private Request request;
     
-    @Column(name = "ProductId", nullable = false)
-    private int productId;
+    @ManyToOne
+    @JoinColumn(name = "ProductId")
+    private Product product;
     
-    @Column(name = "Quantity", nullable = false)
     private int quantity;
-
-    // Getters and Setters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-
-    public int getRequestId() { return requestId; }
-    public void setRequestId(int requestId) { this.requestId = requestId; }
-
-    public int getProductId() { return productId; }
-    public void setProductId(int productId) { this.productId = productId; }
-
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+    
+    public LineItem() {}
+    
+    public LineItem(Request request, Product product, int quantity) {
+        this.request = request;
+        this.product = product;
+        this.quantity = quantity;
+    }
+    
+    public int getId() {
+        return id;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public Request getRequest() {
+        return request;
+    }
+    
+    public void setRequest(Request request) {
+        this.request = request;
+    }
+    
+    public Product getProduct() {
+        return product;
+    }
+    
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+    
+    public int getQuantity() {
+        return quantity;
+    }
+    
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 }

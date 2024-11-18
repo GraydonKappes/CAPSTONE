@@ -1,38 +1,29 @@
 package com.prs.web.model;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "request")
+@Table(name = "Request")
 public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "UserId", nullable = false)
     private int userId;
-
-    @Column(nullable = false)
     private String description;
-
-    @Column(nullable = false)
     private String justification;
-
-    @Column(nullable = false)
     private String deliveryMode;
-
-    @Column(nullable = false)
     private String status;
-
-    @Column(nullable = false)
     private double total;
-
-    @Column(nullable = false)
-    private String submittedDate;
-
+    
+    @Column(name = "submittedDate")
+    private LocalDateTime submittedDate;
+    
     private String reasonForRejection;
 
-    // Getters and setters
     public int getId() {
         return id;
     }
@@ -89,11 +80,11 @@ public class Request {
         this.total = total;
     }
 
-    public String getSubmittedDate() {
+    public LocalDateTime getSubmittedDate() {
         return submittedDate;
     }
 
-    public void setSubmittedDate(String submittedDate) {
+    public void setSubmittedDate(LocalDateTime submittedDate) {
         this.submittedDate = submittedDate;
     }
 
@@ -104,4 +95,9 @@ public class Request {
     public void setReasonForRejection(String reasonForRejection) {
         this.reasonForRejection = reasonForRejection;
     }
+
+	public List<Request> getLineItems() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

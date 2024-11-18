@@ -24,9 +24,9 @@ INSERT INTO Product(VendorId, PartNumber, Name, Price, Unit) VALUES
 
 -- Insert sample Request
 INSERT INTO Request(UserId, Description, Justification, DateNeeded, DeliveryMode, Status, Total, SubmittedDate, ReasonForRejection) VALUES
-(1, 'New Developer Workstation', 'Setting up for new hire', '2024-09-15', 'Delivery', 'New', 2619.97, curdate(), NULL),
-(2, 'Software Licenses Renewal', 'Annual license renewals', '2024-10-01', 'Online Delivery', 'Approved', 1549.86, curdate(), NULL),
-(3, 'Team Peripherals Upgrade', 'Improving team productivity', '2024-09-30', 'Delivery', 'In Review', 499.95, curdate(), NULL);
+(1, 'New Developer Workstation', 'Setting up for new hire', '2024-09-15', 'Delivery', 'NEW', 2619.97, curdate(), NULL),
+(2, 'Software Licenses Renewal', 'Annual license renewals', '2024-10-01', 'Online Delivery', 'APPROVED', 1549.86, curdate(), NULL),
+(3, 'Team Peripherals Upgrade', 'Improving team productivity', '2024-09-30', 'Delivery', 'REVIEW', 499.95, curdate(), NULL);
 
 -- Insert sample LineItem
 INSERT INTO LineItem(RequestId, ProductId, Quantity) VALUES

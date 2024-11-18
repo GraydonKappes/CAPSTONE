@@ -1,21 +1,26 @@
 // LineItemController.java
 package com.prs.web.controller;
 
-import java.util.List;
-import java.util.Optional;
+import com.prs.web.model.LineItem;
+import com.prs.web.model.Request;
+import com.prs.web.db.LineItemDb;
+import com.prs.web.db.RequestDb;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.prs.web.db.LineItemDb;
-import com.prs.web.model.LineItem;
+import java.util.List;
+import java.util.Optional;
 
-@CrossOrigin
 @RestController
 @RequestMapping("/api/lineitems")
+@CrossOrigin
 public class LineItemController {
     @Autowired
     private LineItemDb lineItemDb;
+    
+    @Autowired
+    private RequestDb requestDb;
     
     @GetMapping
     public ResponseEntity<List<LineItem>> getAllLineItems() {
@@ -39,8 +44,13 @@ public class LineItemController {
     
     @PostMapping
     public ResponseEntity<LineItem> createLineItem(@RequestBody LineItem lineItem) {
-        LineItem newLineItem = lineItemDb.save(lineItem);
-        return new ResponseEntity<>(newLineItem, HttpStatus.CREATED);
+        try {
+            LineItem newLineItem = lineItemDb.save(lineItem);
+            updateRequestTotal(lineItem.getRequest().getId());
+            return new ResponseEntity<>(newLineItem, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     @PutMapping("/{id}")
@@ -48,16 +58,38 @@ public class LineItemController {
         if (!lineItemDb.existsById(id)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        lineItem.setId(id);
-        return new ResponseEntity<>(lineItemDb.save(lineItem), HttpStatus.OK);
+        try {
+            lineItem.setId(id);
+            LineItem updatedLineItem = lineItemDb.save(lineItem);
+            updateRequestTotal(lineItem.getRequest().getId());
+            return new ResponseEntity<>(updatedLineItem, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteLineItem(@PathVariable int id) {
-        if (!lineItemDb.existsById(id)) {
+        Optional<LineItem> lineItem = lineItemDb.findById(id);
+        if (lineItem.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        
+        int requestId = lineItem.get().getRequest().getId();
         lineItemDb.deleteById(id);
+        updateRequestTotal(requestId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+    
+    private void updateRequestTotal(int requestId) {
+        Request request = requestDb.findById(requestId).orElse(null);
+        if (request != null) {
+            List<LineItem> lineItems = lineItemDb.findByRequestId(requestId);
+            double total = lineItems.stream()
+                .mapToDouble(item -> item.getProduct().getPrice().doubleValue() * item.getQuantity())
+                .sum();
+            request.setTotal(total);
+            requestDb.save(request);
+        }
     }
 }
