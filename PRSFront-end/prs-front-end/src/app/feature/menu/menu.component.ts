@@ -1,8 +1,9 @@
 // src/app/feature/menu/menu.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../service/auth.service';
+import { User } from '../../model/user.interface';
 
 @Component({
   selector: 'app-menu',
@@ -42,6 +43,11 @@ import { AuthService } from '../../service/auth.service';
           <ul class="navbar-nav">
             @if (authService.isLoggedIn()) {
               <li class="nav-item">
+                <span class="nav-link me-3">
+                  <i class="bi bi-person-circle"></i> {{currentUser?.username}}
+                </span>
+              </li>
+              <li class="nav-item">
                 <a class="nav-link" style="cursor: pointer;" (click)="logout()">Logout</a>
               </li>
             }
@@ -51,8 +57,16 @@ import { AuthService } from '../../service/auth.service';
     </nav>
   `
 })
-export class MenuComponent {
+export class MenuComponent implements OnInit {
+  currentUser: User | null = null;
+
   constructor(public authService: AuthService) {}
+
+  ngOnInit(): void {
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+  }
 
   logout(): void {
     this.authService.logout();

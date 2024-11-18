@@ -80,7 +80,7 @@ export class LoginComponent {
     this.authService.login(this.credentials.username, this.credentials.password).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
-        this.router.navigate(['/']);
+        this.router.navigate(['/requests']);
       },
       error: (error) => {
         console.error('Login error details:', error);
