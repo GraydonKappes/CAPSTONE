@@ -69,9 +69,9 @@ import { Product } from '../../../model/product.interface';
               <tbody>
                 @for (item of lineItems[request.id] || []; track item.id) {
                   <tr>
-                    <td>{{getProductName(item.productId)}}</td>
+                    <td>{{getProductName(item.product.id)}}</td>
                     <td>{{item.quantity}}</td>
-                    <td>{{getProductPrice(item.productId) | currency}}</td>
+                    <td>{{getProductPrice(item.product.id) | currency}}</td>
                     <td>{{calculateLineTotal(item) | currency}}</td>
                   </tr>
                 }
@@ -149,7 +149,7 @@ export class RequestReviewComponent implements OnInit {
   }
 
   calculateLineTotal(item: LineItem): number {
-    return item.quantity * this.getProductPrice(item.productId);
+    return item.quantity * this.getProductPrice(item.product.id);
   }
 
   approve(id: number): void {

@@ -1,35 +1,30 @@
 // LineItemController.java
 package com.prs.web.controller;
 
-import com.prs.web.model.LineItem;
-import com.prs.web.model.Request;
-import com.prs.web.db.LineItemDb;
-import com.prs.web.db.RequestDb;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.prs.web.model.LineItem;
+import com.prs.web.db.LineItemDb;
 import java.util.List;
-import java.util.Optional;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/lineitems")
-@CrossOrigin
 public class LineItemController {
+    
     @Autowired
     private LineItemDb lineItemDb;
     
-    @Autowired
-    private RequestDb requestDb;
-    
-    @GetMapping
-    public ResponseEntity<List<LineItem>> getAllLineItems() {
+    @GetMapping("")
+    public ResponseEntity<List<LineItem>> getAll() {
         return new ResponseEntity<>(lineItemDb.findAll(), HttpStatus.OK);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<LineItem> getLineItemById(@PathVariable int id) {
-        Optional<LineItem> lineItem = lineItemDb.findById(id);
+    public ResponseEntity<LineItem> getById(@PathVariable int id) {
+        var lineItem = lineItemDb.findById(id);
         if(lineItem.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -37,59 +32,39 @@ public class LineItemController {
     }
     
     @GetMapping("/request/{requestId}")
-    public ResponseEntity<List<LineItem>> getLineItemsByRequestId(@PathVariable int requestId) {
-        List<LineItem> items = lineItemDb.findByRequestId(requestId);
-        return new ResponseEntity<>(items, HttpStatus.OK);
+    public ResponseEntity<List<LineItem>> getByRequestId(@PathVariable int requestId) {
+        return new ResponseEntity<>(lineItemDb.findByRequestId(requestId), HttpStatus.OK);
     }
     
-    @PostMapping
-    public ResponseEntity<LineItem> createLineItem(@RequestBody LineItem lineItem) {
-        try {
-            LineItem newLineItem = lineItemDb.save(lineItem);
-            updateRequestTotal(lineItem.getRequest().getId());
-            return new ResponseEntity<>(newLineItem, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    @PostMapping("")
+    public ResponseEntity<LineItem> create(@RequestBody LineItem lineItem) {
+        if(lineItem == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        lineItem.setId(0);
+        var savedLineItem = lineItemDb.save(lineItem);
+        return new ResponseEntity<>(savedLineItem, HttpStatus.CREATED);
     }
     
-    @PutMapping("/{id}")
-    public ResponseEntity<LineItem> updateLineItem(@PathVariable int id, @RequestBody LineItem lineItem) {
-        if (!lineItemDb.existsById(id)) {
+    @PutMapping("")
+    public ResponseEntity<LineItem> update(@RequestBody LineItem lineItem) {
+        if(lineItem == null || lineItem.getId() <= 0) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        var existingLineItem = lineItemDb.findById(lineItem.getId());
+        if(existingLineItem.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        try {
-            lineItem.setId(id);
-            LineItem updatedLineItem = lineItemDb.save(lineItem);
-            updateRequestTotal(lineItem.getRequest().getId());
-            return new ResponseEntity<>(updatedLineItem, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(lineItemDb.save(lineItem), HttpStatus.OK);
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteLineItem(@PathVariable int id) {
-        Optional<LineItem> lineItem = lineItemDb.findById(id);
-        if (lineItem.isEmpty()) {
+    public ResponseEntity<HttpStatus> delete(@PathVariable int id) {
+        var lineItem = lineItemDb.findById(id);
+        if(lineItem.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        
-        int requestId = lineItem.get().getRequest().getId();
         lineItemDb.deleteById(id);
-        updateRequestTotal(requestId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-    
-    private void updateRequestTotal(int requestId) {
-        Request request = requestDb.findById(requestId).orElse(null);
-        if (request != null) {
-            List<LineItem> lineItems = lineItemDb.findByRequestId(requestId);
-            double total = lineItems.stream()
-                .mapToDouble(item -> item.getProduct().getPrice().doubleValue() * item.getQuantity())
-                .sum();
-            request.setTotal(total);
-            requestDb.save(request);
-        }
     }
 }

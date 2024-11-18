@@ -5,8 +5,9 @@ import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { LineItemService } from '../../../service/line-item.service';
 import { ProductService } from '../../../service/product.service';
 import { Product } from '../../../model/product.interface';
-import { LineItem } from '../../../model/line-item.interface';
 import { CurrencyPipe } from '@angular/common';
+import { LineItem } from '../../../model/line-item.interface';
+import { Request } from '../../../model/request.interface';
 
 @Component({
   selector: 'app-line-item-create',
@@ -15,14 +16,17 @@ import { CurrencyPipe } from '@angular/common';
   template: `
     <div class="container mt-4">
       <h2>Add Line Item</h2>
+      @if (errorMessage) {
+        <div class="alert alert-danger">{{errorMessage}}</div>
+      }
       <form (ngSubmit)="save()" #lineItemForm="ngForm">
         <div class="mb-3">
           <label class="form-label">Product:</label>
-          <select class="form-control" [(ngModel)]="lineItem.productId" 
-                  name="productId" required>
+          <select class="form-control" [(ngModel)]="selectedProduct" 
+                  name="product" required>
             <option [ngValue]="null">Select a product</option>
             @for (product of products; track product.id) {
-              <option [ngValue]="product.id">
+              <option [ngValue]="product">
                 {{product.name}} ({{product.price | currency}})
               </option>
             }
@@ -31,9 +35,16 @@ import { CurrencyPipe } from '@angular/common';
 
         <div class="mb-3">
           <label class="form-label">Quantity:</label>
-          <input type="number" class="form-control" [(ngModel)]="lineItem.quantity" 
+          <input type="number" class="form-control" [(ngModel)]="quantity" 
                  name="quantity" required min="1">
         </div>
+
+        @if (selectedProduct) {
+          <div class="mb-3">
+            <strong>Line Total: </strong>
+            {{selectedProduct.price * quantity | currency}}
+          </div>
+        }
 
         <button type="submit" class="btn btn-primary" 
                 [disabled]="!lineItemForm.form.valid">Add Line Item</button>
@@ -46,9 +57,9 @@ import { CurrencyPipe } from '@angular/common';
 export class LineItemCreateComponent implements OnInit {
   requestId!: number;
   products: Product[] = [];
-  lineItem: Partial<LineItem> = {
-    quantity: 1
-  };
+  selectedProduct: Product | null = null;
+  quantity: number = 1;
+  errorMessage = '';
 
   constructor(
     private lineItemService: LineItemService,
@@ -61,7 +72,6 @@ export class LineItemCreateComponent implements OnInit {
     const requestId = Number(this.route.snapshot.paramMap.get('requestId'));
     if (requestId) {
       this.requestId = requestId;
-      this.lineItem.requestId = requestId;
       this.loadProducts();
     } else {
       this.router.navigate(['/requests']);
@@ -71,17 +81,29 @@ export class LineItemCreateComponent implements OnInit {
   loadProducts(): void {
     this.productService.list().subscribe({
       next: (products) => this.products = products,
-      error: (error) => console.error('Error loading products:', error)
+      error: (error) => {
+        console.error('Error loading products:', error);
+        this.errorMessage = 'Failed to load products';
+      }
     });
   }
 
   save(): void {
-    if (this.lineItem.productId && this.lineItem.quantity && this.lineItem.requestId) {
-      this.lineItemService.create(this.lineItem as LineItem).subscribe({
+    if (this.selectedProduct && this.quantity > 0) {
+      const lineItem: LineItem = {
+        request: { id: this.requestId } as Request,
+        product: this.selectedProduct,
+        quantity: this.quantity
+      };
+
+      this.lineItemService.create(lineItem).subscribe({
         next: () => {
           this.router.navigate(['/requests', this.requestId, 'line-items']);
         },
-        error: (error) => console.error('Error creating line item:', error)
+        error: (error) => {
+          console.error('Error creating line item:', error);
+          this.errorMessage = 'Failed to create line item. Please try again.';
+        }
       });
     }
   }

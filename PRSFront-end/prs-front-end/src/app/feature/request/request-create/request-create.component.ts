@@ -198,12 +198,12 @@ export class RequestCreateComponent implements OnInit {
         const lineItemObservables = this.lineItems
           .filter(item => item.productId && item.quantity)
           .map(item => {
-            const lineItem: Partial<LineItem> = {
-              requestId: createdRequest.id,
-              productId: item.productId!,
+            const lineItem: LineItem = {
+              request: { id: createdRequest.id } as Request,
+              product: { id: item.productId } as Product,
               quantity: item.quantity
             };
-            return this.lineItemService.create(lineItem as LineItem);
+            return this.lineItemService.create(lineItem);
           });
 
         forkJoin(lineItemObservables).subscribe({

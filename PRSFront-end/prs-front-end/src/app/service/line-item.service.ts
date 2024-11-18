@@ -19,19 +19,19 @@ export class LineItemService {
         return this.http.get<LineItem>(`${this.apiUrl}/${id}`);
     }
 
+    getByRequestId(requestId: number): Observable<LineItem[]> {
+        return this.http.get<LineItem[]>(`${this.apiUrl}/request/${requestId}`);
+    }
+
     create(lineItem: LineItem): Observable<LineItem> {
         return this.http.post<LineItem>(this.apiUrl, lineItem);
     }
 
-    update(id: number, lineItem: LineItem): Observable<LineItem> {
-        return this.http.put<LineItem>(`${this.apiUrl}/${id}`, lineItem);
+    update(lineItem: LineItem): Observable<LineItem> {
+        return this.http.put<LineItem>(this.apiUrl, lineItem);
     }
 
     delete(id: number): Observable<void> {
         return this.http.delete<void>(`${this.apiUrl}/${id}`);
-    }
-
-    getByRequestId(requestId: number): Observable<LineItem[]> {
-        return this.http.get<LineItem[]>(`${this.apiUrl}/request/${requestId}`);
     }
 }

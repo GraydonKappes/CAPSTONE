@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { RequestService } from '../../../service/request.service';
 import { LineItemService } from '../../../service/line-item.service';
@@ -22,7 +22,7 @@ import { Product } from '../../../model/product.interface';
           <div class="mb-3">
             <strong>Description:</strong> {{request.description}} |
             <strong>Status:</strong> {{request.status}} |
-            <strong>Total:</strong> {{request.total | currency}}
+            <strong>Total:</strong> {{calculateTotal() | currency}}
           </div>
         </div>
 
@@ -53,19 +53,28 @@ import { Product } from '../../../model/product.interface';
             }
             @for (item of lineItems; track item.id) {
               <tr>
-                <td>{{getProductName(item.productId)}}</td>
+                <td>{{item.product.name}}</td>
                 <td>{{item.quantity}}</td>
-                <td>{{getProductPrice(item.productId) | currency}}</td>
-                <td>{{calculateItemTotal(item) | currency}}</td>
+                <td>{{item.product.price | currency}}</td>
+                <td>{{item.quantity * item.product.price | currency}}</td>
                 @if (canEdit) {
                   <td>
-                    <button (click)="deleteLineItem(item.id)" 
+                    <button (click)="deleteLineItem(item.id!)" 
                             class="btn btn-danger btn-sm">Delete</button>
                   </td>
                 }
               </tr>
             }
           </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-end"><strong>Total:</strong></td>
+              <td><strong>{{calculateTotal() | currency}}</strong></td>
+              @if (canEdit) {
+                <td></td>
+              }
+            </tr>
+          </tfoot>
         </table>
 
         <div class="mt-3">
@@ -84,7 +93,6 @@ import { Product } from '../../../model/product.interface';
 export class LineItemListComponent implements OnInit {
   request?: Request;
   lineItems: LineItem[] = [];
-  products: { [id: number]: Product } = {};
   
   get canEdit(): boolean {
     return this.request?.status === 'NEW' && 
@@ -94,9 +102,9 @@ export class LineItemListComponent implements OnInit {
   constructor(
     private lineItemService: LineItemService,
     private requestService: RequestService,
-    private productService: ProductService,
     private route: ActivatedRoute,
-    public authService: AuthService
+    public authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -104,54 +112,50 @@ export class LineItemListComponent implements OnInit {
     if (requestId) {
       this.loadRequest(requestId);
       this.loadLineItems(requestId);
-      this.loadProducts();
     }
   }
 
   loadRequest(id: number): void {
-    this.requestService.get(id).subscribe(request => {
-      this.request = request;
+    this.requestService.get(id).subscribe({
+      next: request => {
+        this.request = request;
+      },
+      error: error => console.error('Error loading request:', error)
     });
   }
 
   loadLineItems(requestId: number): void {
-    this.lineItemService.getByRequestId(requestId).subscribe(items => {
-      this.lineItems = items;
+    this.lineItemService.getByRequestId(requestId).subscribe({
+      next: items => {
+        this.lineItems = items;
+      },
+      error: error => console.error('Error loading line items:', error)
     });
   }
 
-  loadProducts(): void {
-    this.productService.list().subscribe(products => {
-      products.forEach(product => {
-        this.products[product.id] = product;
-      });
-    });
-  }
-
-  getProductName(productId: number): string {
-    return this.products[productId]?.name || 'Loading...';
-  }
-
-  getProductPrice(productId: number): number {
-    return this.products[productId]?.price || 0;
-  }
-
-  calculateItemTotal(item: LineItem): number {
-    return item.quantity * this.getProductPrice(item.productId);
+  calculateTotal(): number {
+    return this.lineItems.reduce((sum, item) => 
+      sum + (item.quantity * item.product.price), 0);
   }
 
   deleteLineItem(id: number): void {
     if (confirm('Are you sure you want to delete this line item?')) {
-      this.lineItemService.delete(id).subscribe(() => {
-        this.loadLineItems(this.request!.id);
+      this.lineItemService.delete(id).subscribe({
+        next: () => {
+          this.loadLineItems(this.request!.id);
+        },
+        error: error => console.error('Error deleting line item:', error)
       });
     }
   }
 
   submitForReview(): void {
-    if (this.request?.id) {
-      this.requestService.submitForReview(this.request.id).subscribe(() => {
-        this.loadRequest(this.request!.id);
+    if (this.request) {
+      this.requestService.submitForReview(this.request.id).subscribe({
+        next: () => {
+          this.router.navigate(['/requests']);
+        },
+        error: error => console.error('Error submitting request:', error)
       });
     }
   }

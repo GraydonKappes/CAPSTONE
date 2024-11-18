@@ -91,14 +91,14 @@ import { Product } from '../../../model/product.interface';
                             </tr>
                           </thead>
                           <tbody>
-                            @for (item of lineItems[request.id] || []; track item.id) {
-                              <tr>
-                                <td>{{getProductName(item.productId)}}</td>
-                                <td>{{item.quantity}}</td>
-                                <td>{{getProductPrice(item.productId) | currency}}</td>
-                                <td>{{calculateLineTotal(item) | currency}}</td>
-                              </tr>
-                            }
+                          @for (item of lineItems[request.id] || []; track item.id) {
+                            <tr>
+                              <td>{{getProductName(item)}}</td>
+                              <td>{{item.quantity}}</td>
+                              <td>{{getProductPrice(item) | currency}}</td>
+                              <td>{{calculateLineTotal(item) | currency}}</td>
+                            </tr>
+                          }
                           </tbody>
                         </table>
                       </div>
@@ -181,16 +181,16 @@ export class RequestListComponent implements OnInit {
     });
   }
 
-  getProductName(productId: number): string {
-    return this.products[productId]?.name || 'Loading...';
+  getProductName(item: LineItem): string {
+    return this.products[item.product.id]?.name || 'Loading...';
   }
 
-  getProductPrice(productId: number): number {
-    return this.products[productId]?.price || 0;
+  getProductPrice(item: LineItem): number {
+    return this.products[item.product.id]?.price || 0;
   }
 
   calculateLineTotal(item: LineItem): number {
-    return item.quantity * this.getProductPrice(item.productId);
+    return item.quantity * this.getProductPrice(item);
   }
 
   getStatusBadgeClass(status: string): string {
