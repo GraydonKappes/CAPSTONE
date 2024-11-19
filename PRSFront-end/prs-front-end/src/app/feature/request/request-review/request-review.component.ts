@@ -35,13 +35,14 @@ import { Product } from '../../../model/product.interface';
       
       @for (request of requests; track request.id) {
         <div class="card mb-4">
-          <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Request #{{request.id}}</h5>
             <div>
               <button (click)="approve(request.id)" class="btn btn-success btn-sm me-1">Approve</button>
               <button (click)="reject(request.id)" class="btn btn-danger btn-sm">Reject</button>
             </div>
           </div>
+
           <div class="card-body">
             <div class="row mb-3">
               <div class="col-md-6">

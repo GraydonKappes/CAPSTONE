@@ -46,16 +46,11 @@ import { Request } from '../../../model/request.interface';
           <div class="card-footer">
             <a routerLink="/requests" class="btn btn-secondary">Back to List</a>
             
-            <!-- Edit button for admin or owner of PENDING requests -->
-            @if (canEditRequest(request)) {
-              <a [routerLink]="['edit']" class="btn btn-warning ms-2">Edit</a>
-            }
-            
             <!-- Review actions for reviewers -->
             @if (canApprove(request)) {
               <button (click)="approve(request.id)" class="btn btn-success ms-2">Approve</button>
               <button (click)="reject(request.id)" class="btn btn-danger ms-2">Reject</button>
-}
+            }
             
             <!-- Submit for Review button for PENDING requests -->
             @if (canSubmitForReview(request)) {
@@ -98,13 +93,10 @@ export class RequestDetailComponent implements OnInit {
     }
   }
 
-  canEditRequest(request: Request): boolean {
-    return request.status === 'NEW' && 
-           request.userId === this.authService.getCurrentUserId();
-  }
-
   canApprove(request: Request): boolean {
-    return request.status === 'REVIEW' && this.authService.isReviewer();
+    return request.status === 'REVIEW' && 
+           (this.authService.isReviewer() || this.authService.isAdmin()) &&
+           request.userId !== this.authService.getCurrentUserId();
   }
 
   canSubmitForReview(request: Request): boolean {

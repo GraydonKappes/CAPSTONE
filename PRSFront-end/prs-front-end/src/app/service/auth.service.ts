@@ -61,10 +61,14 @@ export class AuthService {
   }
 
   isReviewer(): boolean {
-    return this.getCurrentUser()?.reviewer || false;
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return false;
+    return currentUser.reviewer || currentUser.admin || false;
   }
 
   isAdmin(): boolean {
-    return this.getCurrentUser()?.admin || false;
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return false;
+    return currentUser.admin || false;
   }
 }

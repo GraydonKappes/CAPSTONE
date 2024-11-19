@@ -48,4 +48,8 @@ export class RequestService {
   reject(id: number, reason: string): Observable<Request> {
     return this.http.put<Request>(`${this.apiUrl}/${id}/reject?reasonForRejection=${reason}`, {});
   }
+
+  getMyRequests(userId: string): Observable<Request[]> {
+    return this.http.get<Request[]>(`${this.apiUrl}/list-review/${userId}`);
+  }
 }

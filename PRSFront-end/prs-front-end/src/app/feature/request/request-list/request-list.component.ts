@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { RequestService } from '../../../service/request.service';
 import { LineItemService } from '../../../service/line-item.service';
@@ -12,7 +12,7 @@ import { Product } from '../../../model/product.interface';
 @Component({
   selector: 'app-request-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, DatePipe],
   template: `
     <div class="container mt-4">
       <h1>Purchase Requests</h1>
@@ -53,10 +53,21 @@ import { Product } from '../../../model/product.interface';
                       {{request.status}}
                     </span>
                   </td>
-                  <td>{{request.dateNeeded | date}}</td>
+                  <td>
+                    @if (request.dateNeeded) {
+                      {{request.dateNeeded | date:'MM/dd/yyyy'}}
+                    } @else {
+                      <span class="text-muted">Not specified</span>
+                    }
+                  </td>
                   <td>{{request.total | currency}}</td>
                   <td>
-                    @if (request.status === 'NEW') {
+                    @if (authService.isAdmin() && request.userId !== authService.getCurrentUserId()) {
+                      <button (click)="delete(request.id!)" 
+                              class="btn btn-danger btn-sm me-1">Delete</button>
+                    }
+                    
+                    @if (request.status === 'NEW' && request.userId === authService.getCurrentUserId()) {
                       <button (click)="submitForReview(request.id!)" 
                               class="btn btn-primary btn-sm me-1">Submit</button>
                       <a [routerLink]="['/requests', request.id, 'line-items']" 
@@ -126,10 +137,10 @@ import { Product } from '../../../model/product.interface';
 })
 export class RequestListComponent implements OnInit {
   requests: Request[] = [];
-  lineItems: { [requestId: number]: LineItem[] } = {};
-  products: { [id: number]: Product } = {};
   loading = true;
-  error: string | null = null;
+  error?: string;
+  products: { [key: number]: Product } = {};
+  lineItems: { [key: number]: LineItem[] } = {};
   expandedRequestId: number | null = null;
 
   constructor(
@@ -145,18 +156,36 @@ export class RequestListComponent implements OnInit {
   }
 
   loadRequests(): void {
-    this.requestService.list().subscribe({
-      next: (requests) => {
-        this.requests = requests;
-        this.loadLineItemsForRequests();
-        this.loading = false;
-      },
-      error: (err) => {
-        this.error = 'Failed to load requests';
-        this.loading = false;
-        console.error('Error loading requests:', err);
+    if (this.authService.isAdmin() || this.authService.isReviewer()) {
+      // Load all requests for admins and reviewers
+      this.requestService.list().subscribe({
+        next: (requests) => {
+          this.requests = requests;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error loading requests:', err);
+          this.error = 'Failed to load requests';
+          this.loading = false;
+        }
+      });
+    } else {
+      // Load only user's requests for regular users
+      const userId = this.authService.getCurrentUserId();
+      if (userId) {
+        this.requestService.getMyRequests(String(userId)).subscribe({
+          next: (requests) => {
+            this.requests = requests;
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error('Error loading requests:', err);
+            this.error = 'Failed to load requests';
+            this.loading = false;
+          }
+        });
       }
-    });
+    }
   }
 
   loadLineItemsForRequests(): void {
@@ -198,9 +227,17 @@ export class RequestListComponent implements OnInit {
   }
 
   canReview(request: Request): boolean {
-    return this.authService.isReviewer() && 
-           request.status === 'REVIEW' && 
-           request.userId !== this.authService.getCurrentUserId();
+    const isOwnRequest = request.userId === this.authService.getCurrentUserId();
+    
+    if (isOwnRequest) {
+      return false;
+    }
+    
+    if (this.authService.isAdmin()) {
+      return true;
+    }
+    
+    return request.status === 'REVIEW' && this.authService.isReviewer();
   }
 
   submitForReview(id: number): void {
@@ -239,4 +276,17 @@ export class RequestListComponent implements OnInit {
   toggleExpand(requestId: number): void {
     this.expandedRequestId = this.expandedRequestId === requestId ? null : requestId;
   }
-}
+
+  delete(id: number): void {
+    if (confirm('Are you sure you want to delete this request?')) {
+      this.requestService.delete(id).subscribe({
+        next: () => {
+          this.loadRequests();
+        },
+        error: (err) => {
+          console.error('Error deleting request:', err);
+          this.error = 'Failed to delete request';
+        }
+      });
+    }
+  }}
